@@ -139,7 +139,7 @@ def main():
   for epoch in range(beg_epoch, FLAGS.num_epochs):
     t1 = time()
     # For each batch in the dataloader
-    for i, data in enumerate(dataloader, 0):
+    for i, data in enumerate(dataloader):
 
       ############################
       # (1) Update D network: maximize log(D(x)) + log(1 - D(G(z)))
@@ -147,12 +147,16 @@ def main():
       ## Train with all-real batch
       netD.zero_grad()
       # Format batch
-      real_cpu = data[0].to(device)
-      b_size = real_cpu.size(0)
+      #real_cpu = data[0].to(device)
+      #b_size = real_cpu.size(0)
+      real_images = data[0].to(device)
+      b_size = real_images.shape[0]
+
       label = torch.full((b_size,), real_label, dtype=torch.float, 
                           device=device)
       # Forward pass real batch through D
-      output = netD(real_cpu).view(-1)
+      #output = netD(real_cpu).view(-1)
+      output = netD(real_images).view(-1)
       # Calculate loss on all-real batch
       errD_real = criterion(output, label)
       # Calculate gradients for D in backward pass
@@ -166,6 +170,7 @@ def main():
       fake = netG(noise)
       label.fill_(fake_label)
       # Classify all fake batch with D
+      #output = netD(fake.detach()).view(-1)
       output = netD(fake.detach()).view(-1)
       # Calculate D's loss on the all-fake batch
       errD_fake = criterion(output, label)
@@ -176,6 +181,7 @@ def main():
       errD = errD_real + errD_fake
       # Update D
       optimizerD.step()
+      print("errD", errD)
 
       ############################
       # (2) Update G network: maximize log(D(G(z)))
@@ -184,6 +190,7 @@ def main():
       label.fill_(real_label)  # fake labels are real for generator cost
       # Since we just updated D, perform another forward pass of 
       # all-fake batch through D
+      #output = netD(fake).view(-1)
       output = netD(fake).view(-1)
       # Calculate G's loss based on this output
       errG = criterion(output, label)
@@ -192,6 +199,7 @@ def main():
       D_G_z2 = output.mean().item()
       # Update G
       optimizerG.step()
+      print("errG", errG)
 
       # Output training stats
       if i % 50 == 0:

@@ -3,6 +3,7 @@ import torchvision.transforms.functional as F
 import torch
 import numpy as np
 import os
+import logging
 
 class SquarePad:
   def __call__(self, image):
